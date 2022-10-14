@@ -1,57 +1,73 @@
 <html>
-<head>
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
-</head>
+  <head>
+    <script
+      src="https://unpkg.com/react@18/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-<body>
-  <div id='root'></div>
-  <script type='text/babel'> 
-    const { useState, useEffect } = React;
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+      integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+      crossorigin="anonymous"
+    ></script>
+  </head>
 
-    window.GITHUB_CLIENT_ID = '<%= GITHUB_CLIENT_ID %>';
-    const App = ()=> {
-      const [auth, setAuth] = useState({});
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useState, useEffect } = React;
 
-      const logout = () => { 
-        window.localStorage.removeItem('token');
-        setAuth({});
-      }
+      window.GITHUB_CLIENT_ID = '<%= GITHUB_CLIENT_ID %>';
+      const App = () => {
+        const [auth, setAuth] = useState({});
 
-      useEffect(()=> {
-        exchangeTokenForUser()
-      }, []); 
+        const logout = () => {
+          window.localStorage.removeItem('token');
+          setAuth({});
+        };
 
-      const exchangeTokenForUser = async() => { 
-        const token = window.localStorage.getItem('token');
+        useEffect(() => {
+          exchangeTokenForUser();
+        }, []);
 
-        if(token){ 
-          const auth = (await axios.get('/api/auth', { 
-            headers: { authorization: token }
-          })).data;
-          setAuth(auth);
-        } 
-      } 
+        const exchangeTokenForUser = async () => {
+          const token = window.localStorage.getItem('token');
 
+          if (token) {
+            const auth = (
+              await axios.get('/api/auth', {
+                headers: { authorization: token },
+              })
+            ).data;
+            setAuth(auth);
+          }
+        };
 
-      if(!auth.id){
-        return (
-          <a href={`https://github.com/login/oauth/authorize?client_id=${window.GITHUB_CLIENT_ID}`}>Login to Github</a>
-        );
-       }
-       else {
-        return ( 
-          <div>
-            <button onClick={ logout }>Logout ({ auth.username})</button>
-          </div>
-       );
-    };
-    }
+        if (!auth.id) {
+          return (
+            <a
+              href={`https://github.com/login/oauth/authorize?client_id=${window.GITHUB_CLIENT_ID}`}
+            >
+              Login to Github
+            </a>
+          );
+        } else {
+          return (
+            <div>
+              <img src={auth.data.avatar_url} style={{ width: '100px', borderRadius:'50%'}} />
+              <button onClick={logout}>Logout ({auth.username})</button>
+              <pre>{JSON.stringify(auth.data, null, 2)}</pre>
+            </div>
+          );
+        }
+      };
 
-    ReactDOM.createRoot(document.querySelector('#root')).render(<App />, );
-  </script>
-</body> 
+      ReactDOM.createRoot(document.querySelector('#root')).render(<App />);
+    </script>
+  </body>
 </html>

@@ -1,7 +1,7 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const Sequelize = require('sequelize');
-const { STRING, INTEGER } = Sequelize;
+const { STRING, INTEGER, JSON } = Sequelize;
 const config = { logging: false };
 
 if (process.env.LOGGING) {
@@ -13,7 +13,11 @@ const conn = new Sequelize(
   config
 );
 
-const User = conn.define('user', { username: STRING });
+const User = conn.define('user', {
+  username: STRING,
+  access_token: STRING,
+  data: JSON,
+});
 
 User.byToken = async (token) => {
   try {
@@ -57,7 +61,7 @@ User.authenticate = async function (code) {
       authorization: `Bearer ${access_token}`,
     },
   });
-  const { login } = response.data;
+  const { login, ...data } = response.data;
 
   let user = await User.findOne({
     where: {
@@ -66,10 +70,12 @@ User.authenticate = async function (code) {
   });
 
   if (!user) {
-    user = await User.create({ username: login });
+    user = await User.create({ username: login, access_token, data });
+  } else {
+    user.update({ access_token, data });
   }
 
-  return jwt.sign({ id: user.id}, process.env.JWT);
+  return jwt.sign({ id: user.id }, process.env.JWT);
 };
 
 // documentation - https://docs.github.com/en/developers/apps/authorizing-oauth-apps
